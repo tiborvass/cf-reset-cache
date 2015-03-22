@@ -20,14 +20,17 @@ elif cloudfront_dist == "" or cloudfront_dist is None:
 elif bucket == "" or bucket is None:
     print "Please set AWS_S3_BUCKET env variable."
     sys.exit(1)
-          
-# get the paths from s3
-s3_conn = boto.connect_s3(access_key, access_secret)
-docs = s3_conn.get_bucket(bucket)
-items = []
- 
-for key in docs.list():
-    items.append(key.name)
+
+if len(sys.argv) > 1:
+    # if user specified some paths, use them
+    items = sys.argv[1:]
+else:
+    # otherwise, use all paths as returned by s3
+    s3_conn = boto.connect_s3(access_key, access_secret)
+    docs = s3_conn.get_bucket(bucket)
+    items = []
+    for key in docs.list():
+        items.append(key.name)
 
 cf_conn = boto.connect_cloudfront(access_key, access_secret)
 inval_req = cf_conn.create_invalidation_request(cloudfront_dist, items)
